@@ -41,9 +41,13 @@ Player::Player()
 Player::Player(Pos pos) : isDead(false), pos(pos)
 {
 	p = new char* [3];
+	DP = new char* [3];
 	for (int i = 0; i < 3; i++)
 	{
 		p[i] = new char[5];
+		DP[i] = new char[5];
+		for (int j = 0; j < 5; j++)
+			DP[i][j] = ' ';
 	}
 	// Row 1
 	for (int i = 0; i < 5; i++)
