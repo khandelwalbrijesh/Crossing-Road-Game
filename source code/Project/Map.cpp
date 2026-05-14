@@ -7,7 +7,7 @@ Map::Map() {
 void Map::drawMap()
 {
 	txtColor(15);
-	/*clrscr();*/ system("cls");
+	clrscr();
 	txtColor(0);
 	for (int i = 0; i < 115; i++)
 	{
@@ -107,7 +107,7 @@ void Map::initializeNewState() {
 		padding[i] = 0;
 		int speed = rand() % (level.getMinSpeed() - level.getMaxSpeed() + 1) + level.getMaxSpeed();
 		bool direction = rand() % 2;
-		bool redLight = rand() % 2;	
+		bool redLight = rand() % 2;
 		roadData.pushRow(new Lane(direction, speed, redLight, (i * 3) + 1));
 	}
 	Enemy* newEnemy;
@@ -125,7 +125,7 @@ void Map::initializeNewState() {
 			delete newEnemy;
 		};
 	}
-	Sleep(200);
+	portableSleep(200);
 	roadData.StepNewState(0);
 }
 void Map::randomNewState() {
@@ -164,26 +164,26 @@ void Map::isDead()
 			player.DeadPlayer();
 			deletePlayer();
 			drawPlayer();
-			Sleep(2000);
+			portableSleep(2000);
 			txtColor(15);
-			/*clrscr();*/ system("cls");
+			clrscr();
 			deletePlayer();
 			if (constVar::isMute == false)
-				PlaySound(TEXT("Sound\\GameOver.wav"), NULL, SND_ASYNC);
+				playSound("Sound/GameOver.wav");
 			for (int i = 14; i >= 0; --i) {
 				txtColor(15);
-				/*clrscr();*/ system("cls");
+				clrscr();
 				txtColor(i);
 				printLoseGame();
-				Sleep(220);
+				portableSleep(220);
 			}
 			txtColor(0);
-			char c;
-			while (_kbhit())
-				c=_getch();
-			gotoXY(45, 27);		
+			int c;
+			while (keyPressed())
+				c = readKey();
+			gotoXY(45, 27);
 			cout << "*** Press any key to continue ***";
-			c=_getch();
+			c = readKey();
 			return;
 		}
 	}
@@ -202,10 +202,10 @@ void Map::saveGame(string file)
 		WriteFileBin(lane[i]->getDirection(), fileout);
 		WriteFileBin(lane[i]->getSpeed(), fileout);
 		WriteFileBin(lane[i]->getRedLight(), fileout);
-	
+
 		vector<Enemy*> enemy(lane[i]->getEnemy());;
 		WriteFileBin(enemy.size(), fileout);
-		
+
 		for (int j = 0; j < enemy.size(); j++)
 		{
 			WriteFileBin(enemy[j]->getX(), fileout);
@@ -342,7 +342,7 @@ bool Map::printLevelUp()
 	}
 	else {
 		txtColor(15);
-		/*clrscr();*/ system("cls");
+		clrscr();
 		drawMap();
 		deletePlayer();
 		gotoXY(15, 15); cout << "******    *******       *******      *******    *******    ******     *******      ###   ###" << endl;
@@ -359,19 +359,19 @@ bool Map::printLevelUp()
 		gotoXY(x, y + 1);
 		cout << " <NO> ";
 		while (1) {
-			char choice = _getch();
+			int choice = readKey();
 			txtColor(0);
 			gotoXY(x, y);
 			cout << " <YES> ";
 			gotoXY(x, y + 1);
 			cout << " <NO> ";
-			if (choice == 's' || choice == 'S')
+			if (choice == 's' || choice == 'S' || choice == KEY_DOWN)
 			{
 				cpt++;
 				if (cpt > 2)
 					cpt = 1;
 			}
-			if (choice == 'w' || choice == 'W')
+			if (choice == 'w' || choice == 'W' || choice == KEY_UP)
 			{
 				cpt--;
 				if (cpt < 1)
@@ -399,13 +399,13 @@ bool Map::printLevelUp()
 
 void Map::printCongrats()
 {
-	Sleep(500);
+	portableSleep(500);
 	txtColor(15);
-	/*clrscr();*/ system("cls");
+	clrscr();
 	drawMap();
 	deletePlayer();
 	if(constVar::isMute == false)
-		PlaySound(TEXT("Sound\\Victory.wav"), NULL, SND_ASYNC);
+		playSound("Sound/Victory.wav");
 	int x = 1;
 	int y = 8;
 	txtColor(6);
@@ -417,12 +417,12 @@ void Map::printCongrats()
 	gotoXY(x + 34, y + 11);	 cout << "  |   |  |       ||       |  |   _   ||   | | | |   |   __   __   __ " << endl;
 	gotoXY(x + 34, y + 12);	 cout << "  |___|  |_______||_______|  |__| |__||___| |_|  |__|  |__| |__| |__|" << endl;
 	txtColor(0);
-	char c;
-	Sleep(3000);
-	while (_kbhit())
-		c=_getch();
+	int c;
+	portableSleep(3000);
+	while (keyPressed())
+		c = readKey();
 	gotoXY(45, y+15);		cout << "*** Press any key to continue ***";
 	txtColor(0);
-	c=_getch();
+	c = readKey();
 	return;
 }

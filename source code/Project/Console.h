@@ -1,10 +1,22 @@
 #pragma once
 #include <iostream>
+#include <time.h>
+#include <algorithm>
+
+#ifdef _WIN32
+#define NOMINMAX
 #include <Windows.h>
 #include <conio.h>
-#include <time.h>
 #pragma comment(lib, "winmm.lib")
-
+#else
+#include <unistd.h>
+#include <termios.h>
+#include <sys/select.h>
+#include <chrono>
+#include <thread>
+#include <csignal>
+#include <cstdio>
+#endif
 
 #define ColorCode_Back			0
 #define ColorCode_DarkBlue		1
@@ -25,20 +37,26 @@
 
 #define default_ColorCode		7
 
-
-
-
-
+#define KEY_UP    300
+#define KEY_DOWN  301
+#define KEY_LEFT  302
+#define KEY_RIGHT 303
+#define KEY_ESC   27
+#define KEY_ENTER 13
 
 void clrscr();
-
 void gotoXY(int column, int line);
-
 void txtColor(int color);
-
 void FixConsoleWindow();
-
 void Nocursortype();
+
+void initTerminal();
+void cleanupTerminal();
+int readKey();
+bool keyPressed();
+void portableSleep(int ms);
+void playSound(const char* file, bool loop = false);
+void stopSound();
 
 class constVar {
 public:

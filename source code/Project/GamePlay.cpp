@@ -1,4 +1,5 @@
 #include "GamePlay.h"
+#include <filesystem>
 
 
 void GamePlay::drawMenu()
@@ -7,9 +8,9 @@ void GamePlay::drawMenu()
 	while (true)
 	{
 		if (constVar::isMute == false)
-			PlaySound(TEXT("Sound\\start.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+			playSound("Sound/start.wav", true);
 		txtColor(15);
-		/*clrscr();*/ system("cls");
+		clrscr();
 		logoCrossingRoad();
 		int x = 60, y = 19;
 		txtColor(0);
@@ -40,7 +41,7 @@ void GamePlay::drawMenu()
 		int cpt = 0;
 		while (true)
 		{
-			char choice = _getch();
+			int choice = readKey();
 			txtColor(0);
 			gotoXY(x + 4, y + 1);
 			cout << " NEW GAME ";
@@ -81,7 +82,7 @@ void GamePlay::drawMenu()
 				cout << " LOAD GAME ";
 				if (choice == KEY_ENTER)
 				{
-					Sleep(500);
+					portableSleep(500);
 					if (LoadGame())
 					{
 						newGame();
@@ -113,7 +114,7 @@ void GamePlay::drawMenu()
 				if (choice == KEY_ENTER)
 				{
 					txtColor(15);
-					system("cls");
+					clrscr();
 					txtColor(0);
 					return;
 				}
@@ -125,14 +126,14 @@ void GamePlay::drawMenu()
 
 bool GamePlay::newGame()
 {
-	char key;
+	int key;
 	if (!isLoad)
 	{
 		map.~Map();
 		new(&map) Map();
 	}
 	txtColor(15);
-	system("cls");
+	clrscr();
 	map.drawMap();
 	isPause = false;
 	if (!isLoad)
@@ -154,19 +155,19 @@ bool GamePlay::newGame()
 			int temp = 0;
 			while (true)
 			{
-				char lc = _getch();
+				int lc = readKey();
 				txtColor(0);
 				gotoXY(128, 22);
 				cout << " RESUME ";
 				gotoXY(128, 24);
 				cout << " QUIT ";
-				if (lc == 'S' || lc == 's')
+				if (lc == 'S' || lc == 's' || lc == KEY_DOWN)
 				{
 					temp = temp + 1;
 					if (temp > 2)
 						temp = 1;
 				}
-				if (lc == 'W' || lc == 'w')
+				if (lc == 'W' || lc == 'w' || lc == KEY_UP)
 				{
 					temp = temp - 1;
 					if (temp < 1)
@@ -199,15 +200,15 @@ bool GamePlay::newGame()
 					if (lc == KEY_ENTER)
 					{
 						isPause = false;
-						Sleep(200);
+						portableSleep(200);
 						return true;
 					}
 				}
 			}
 		}
-		if (_kbhit())
+		if (keyPressed())
 		{
-			char key = _getch();
+			int key = readKey();
 			if (key == 'W' || key == 'w')
 				map.UpdatePositionPlayer('w');
 			if (key == 'S' || key == 's')
@@ -240,24 +241,24 @@ bool GamePlay::newGame()
 		if (map.isWin())
 		{
 			if (constVar::isMute == false && map.getLevel() != 3)
-				PlaySound(TEXT("Sound\\CompleteStage.wav"), NULL, SND_ASYNC);
+				playSound("Sound/CompleteStage.wav");
 			if (map.printLevelUp())
 			{
 				txtColor(15);
-				/*clrscr();*/ system("cls");
+				clrscr();
 				map.nextLevel();
 				map.drawMap();
 				map.deletePlayer();
 				map.initializeNewState();
 				map.drawPlayer();
-				
+
 				if (constVar::isMute == false)
-					PlaySound(TEXT("Sound\\start.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+					playSound("Sound/start.wav", true);
 			}
 			else
 				return true;
 		}
-		
+
 	}
 	return false;
 }
@@ -265,7 +266,7 @@ bool GamePlay::newGame()
 void GamePlay::SaveGame()
 {
 	txtColor(15);
-	/*clrscr();*/ system("cls");
+	clrscr();
 	logoSaveGame();
 	string filename;
 	map.deletePlayer();
@@ -276,10 +277,11 @@ void GamePlay::SaveGame()
 	gotoXY(15, 15);
 	cout << "Input file name to save: ";
 	txtColor(0);
-	char key;
-	while ((key = _getch()) != 27) {
+	int key;
+	while ((key = readKey()) != KEY_ESC) {
 		switch (key) {
 		case '\b':
+		case 127:
 			if (filename.size() != 0) {
 				filename.pop_back();
 				gotoXY(50, 15);
@@ -288,38 +290,30 @@ void GamePlay::SaveGame()
 				cout << filename;
 			}
 			break;
-		case 13:
+		case KEY_ENTER:
 			map.saveGame(filename);
 			break;
 		default:
-			filename.push_back(key);
-			gotoXY(50, 15);
-			cout << filename;
+			if (key >= 32 && key < 127) {
+				filename.push_back((char)key);
+				gotoXY(50, 15);
+				cout << filename;
+			}
 		}
-		if (key == 13) break;
+		if (key == KEY_ENTER) break;
 	}
 	txtColor(15);
-	/*clrscr();*/ system("cls");
+	clrscr();
 	map.drawMap();
 }
 vector<string> GamePlay::getAllFileName(const string& name)
 {
 	vector<string> v;
-	string path(name);
-	path.append("\\*");
-	std::wstring st = std::wstring(path.begin(), path.end());
-	LPCWSTR sw = st.c_str();
-	WIN32_FIND_DATA data;
-	HANDLE hFind = FindFirstFile(sw, &data);
-	if (hFind != INVALID_HANDLE_VALUE) {
-		do {
-			wchar_t* txt = data.cFileName;
-			wstring ws(txt);
-			string str(ws.begin(), ws.end());
-			if (str[0] == '.') continue;
-			v.push_back(str);
-		} while (FindNextFile(hFind, &data) != 0);
-		FindClose(hFind);
+	if (!std::filesystem::exists(name)) return v;
+	for (const auto& entry : std::filesystem::directory_iterator(name)) {
+		string fname = entry.path().filename().string();
+		if (fname[0] == '.') continue;
+		v.push_back(fname);
 	}
 	return v;
 }
@@ -328,18 +322,18 @@ bool GamePlay::LoadGame()
 {
 	string filename;
 	txtColor(15);
-	/*clrscr();*/ system("cls");
+	clrscr();
 	vector<string> files = getAllFileName("LoadGame");
 	if (files.size() == 0)
 	{
 		gotoXY(30, 15);
 		cout << "No saved file to load!!!";
-		Sleep(1000);
+		portableSleep(1000);
 		return false;
 	}
 	int curPos = 0;
 	txtColor(15);
-	/*clrscr();*/ system("cls");
+	clrscr();
 	txtColor(6);
 	gotoXY(15, 5); cout << "**      *******      ****     *******" << endl;
 	gotoXY(15, 6); cout << "**     **     **    **  **    **     *" << endl;
@@ -348,7 +342,7 @@ bool GamePlay::LoadGame()
 	gotoXY(15, 9); cout << "******  *******  **        ** *******   **  *  ** *******  **  * ** **    **" << endl;
 	gotoXY(15, 10); cout << "                                        **     ** **       **   *** **    **" << endl;
 	gotoXY(15, 11); cout << "                                        **     ** ******** **    ** ********" << endl;
-	
+
 	int x = 15, y = 4;
 	txtColor(0);
 	gotoXY(x - 8, y - 2);
@@ -390,7 +384,7 @@ bool GamePlay::LoadGame()
 		gotoXY(x + 82, i);
 		cout << Border_Vertical;
 	}
-	
+
 	txtColor(11);
 	gotoXY(30, 16); cout << "<Press ESC to escape...>";
 	txtColor(0);
@@ -406,10 +400,10 @@ bool GamePlay::LoadGame()
 		cout << files[i] << endl;
 	}
 	while (true) {
-		if (_kbhit())
+		if (keyPressed())
 		{
-			char key = _getch();
-			if (key == 'w')
+			int key = readKey();
+			if (key == 'w' || key == KEY_UP)
 			{
 				gotoXY(26, 19 + curPos);
 				cout << "    " << files[curPos];
@@ -418,7 +412,7 @@ bool GamePlay::LoadGame()
 				gotoXY(26, 19 + curPos);
 				cout << ">>  " << files[curPos];
 			}
-			if (key == 's')
+			if (key == 's' || key == KEY_DOWN)
 			{
 				gotoXY(26, 19 + curPos);
 				cout << "    " << files[curPos];
@@ -427,31 +421,29 @@ bool GamePlay::LoadGame()
 				gotoXY(26, 19 + curPos);
 				cout << ">>  " << files[curPos];
 			}
-			if (key == 13)
+			if (key == KEY_ENTER)
 			{
 				isLoad = true;
 				map.loadGame(files[curPos]);
 				txtColor(15);
-				/*clrscr();*/ system("cls");
-				//map.redrawMap();
+				clrscr();
 				return true;
 			}
-			if (key == 27)
+			if (key == KEY_ESC)
 			{
 				txtColor(15);
-				/*clrscr();*/ system("cls");
-				//map.redrawMap();
+				clrscr();
 				return false;
 			}
 		}
 		if (constVar::isMute == false)
-			PlaySound(TEXT("Sound\\start.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
-		Sleep(50);
+			playSound("Sound/start.wav", true);
+		portableSleep(50);
 	}
 }
 void GamePlay::logoSaveGame() {
 	txtColor(15);
-	/*clrscr();*/ system("cls");
+	clrscr();
 	int x = 50;
 	int y = 4;
 
@@ -509,7 +501,7 @@ void GamePlay::logoCrossingRoad() {
 	txtColor(6);
 	int x = 20;
 	int y = 4;
-	
+
 	gotoXY(x - 1, y);		cout << " _______  ______    _______  _______  _______  __  ____     __  _______       ______    _______  _______  ______  " << endl;
 	gotoXY(x - 1, y + 1);	cout << "|       ||    _ |  |       ||       ||       ||  ||    \\   |  ||  _____\\     |    _ |  |       ||   _   ||      | " << endl;
 	gotoXY(x - 1, y + 2);	cout << "|       ||   | ||  |   _   ||  _____||  _____||  ||  |\\ \\  |  || |   ___     |   | ||  |   _   ||  |_|  ||  _    |" << endl;
@@ -565,7 +557,7 @@ void GamePlay::loadingBar() {
 	int x = 51;
 	int y = 18;
 	txtColor(15);
-	/*clrscr();*/ system("cls");
+	clrscr();
 	txtColor(0);
 	logoCrossingRoad();
 
@@ -586,9 +578,9 @@ void GamePlay::loadingBar() {
 
 	gotoXY(x, y + 1);
 	for (int i = 0; i < 68; ++i) {
-		Sleep(20);
+		portableSleep(20);
 		txtColor(6);
-		cout << char(178);
+		cout << LOADING_BLOCK;
 	}
 
 }
@@ -606,10 +598,14 @@ void GamePlay ::emptyMenu()
 
 void GamePlay::displayConsole()
 {
+#ifdef _WIN32
 	HWND console = GetConsoleWindow();
 	RECT r;
 	GetWindowRect(console, &r);
 	MoveWindow(console, r.left, r.top, 1280, 720, TRUE);
+#else
+	printf("\033[8;40;160t");
+#endif
 	FixConsoleWindow();
 }
 
@@ -656,7 +652,7 @@ void GamePlay::SettingsGame()
 	int cnt = 0;
 	while (true)
 	{
-		char choice = _getch();
+		int choice = readKey();
 		txtColor(0);
 		gotoXY(x + 6, y + 1); cout << "MODE:";
 		gotoXY(x + 6, y + 3); cout << "SOUND:";
@@ -703,12 +699,12 @@ void GamePlay::SettingsGame()
 				if (constVar::isMute == false) {
 					txtColor(0);
 					gotoXY(x + 13, y + 3); cout << "ON ";
-					PlaySound(TEXT("Sound\\start.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+					playSound("Sound/start.wav", true);
 				}
 				else {
 					txtColor(0);
 					gotoXY(x + 13, y + 3); cout << "OFF";
-					PlaySound(NULL, NULL, SND_ASYNC);
+					stopSound();
 				}
 			}
 		}
@@ -716,7 +712,7 @@ void GamePlay::SettingsGame()
 			txtColor(155);
 			gotoXY(x + 8, y + 5); cout << " BACK ";
 			if (choice == KEY_ENTER) {
-				
+
 				return;
 			}
 		}

@@ -53,7 +53,7 @@ int Bird::getType()
 
 void Bird::sound()
 {
-	PlaySound(TEXT("Sound\\Bird.wav"), NULL, SND_ASYNC);
+	playSound("Sound/Bird.wav");
 }
 
 Bird::~Bird()

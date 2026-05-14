@@ -61,7 +61,7 @@ int Dog::getType()
 
 void Dog::sound()
 {
-	PlaySound(TEXT("Sound\\Dog.wav"), NULL, SND_ASYNC);
+	playSound("Sound/Dog.wav");
 }
 
 Dog::~Dog()

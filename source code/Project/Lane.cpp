@@ -43,7 +43,7 @@ int Lane::StepNewState(int t)
 		gotoXY(LEFTMAP - 1, curRow + 1);
 	}
 	if (curRow != 1)
-		cout << (char)254;
+		cout << '*';
 	txtColor(7);
 	if (((t % speed) != 0) && t != 0)
 		return nDelete; 

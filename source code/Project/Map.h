@@ -1,7 +1,5 @@
 #pragma once
 #include <iostream>
-#include <conio.h>
-#include <Windows.h>
 #include "Player.h"
 #include "Car.h"
 #include "Bus.h"
@@ -11,26 +9,20 @@
 #include <fstream>
 using namespace std;
 
-#define Border_Vertical char(219);
-#define Border_Down char(220);
-#define Border_Up char(223);
-#define Border_mid char(254);
-#define Square_Piece char(254)
+#define Border_Vertical "\xe2\x96\x88"
+#define Border_Down "\xe2\x96\x84"
+#define Border_Up "\xe2\x96\x80"
+#define Border_mid "\xe2\x96\xa0"
+#define Square_Piece "\xe2\x96\xa0"
 
-#define HORIZONTAL_PALE_PIECE char(205);
-#define VERTICAL_PALE_PIECE char(186);
-#define UP_LEFT_CORNER_PALE_PIECE char(201)
-#define UP_RIGHT_CORNER_PALE_PIECE char(187)
-#define DOWN_LEFT_CORNER_PALE_PIECE char(200)
-#define DOWN_RIGHT_CORNER_PALE_PIECE char(188)
+#define HORIZONTAL_PALE_PIECE "\xe2\x95\x90"
+#define VERTICAL_PALE_PIECE "\xe2\x95\x91"
+#define UP_LEFT_CORNER_PALE_PIECE "\xe2\x95\x94"
+#define UP_RIGHT_CORNER_PALE_PIECE "\xe2\x95\x97"
+#define DOWN_LEFT_CORNER_PALE_PIECE "\xe2\x95\x9a"
+#define DOWN_RIGHT_CORNER_PALE_PIECE "\xe2\x95\x9d"
 
-#define KEY_DOWN 80
-#define KEY_UP 72
-#define KEY_LEFT 75
-#define KEY_RIGHT 77
-#define KEY_ESC 27
-#define KEY_ENTER 13
-
+#define LOADING_BLOCK "\xe2\x96\x93"
 
 #define Left_Map 3
 #define Right_Map 58
@@ -48,7 +40,7 @@ private:
 public:
 	Map();
 	~Map() = default;
-	
+
 	void drawMap();
 	void checkMap();
 	void deletePlayer();

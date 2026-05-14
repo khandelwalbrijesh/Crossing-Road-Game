@@ -64,7 +64,7 @@ int Car::getType()
 
 void Car::sound()
 {
-	PlaySound(TEXT("Sound\\CarBus.wav"), NULL, SND_ASYNC);
+	playSound("Sound/CarBus.wav");
 }
 
 Car::~Car()
